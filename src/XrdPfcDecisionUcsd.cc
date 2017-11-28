@@ -1,9 +1,5 @@
 /* 
-   Implementation of a N2N class using the CMS TFC
-
-   Rewritten, but adopted from upstream CMS sources
-   Author: Brian Bockelman
-   Original Author: Giulio.Eulisse@cern.ch
+   Author: Matevz Tadel
  */
 
 #include <set>
@@ -12,6 +8,7 @@
 
 #include "XrdPfcDecisionUcsd.hh"
 #include "XrdSys/XrdSysError.hh"
+#include "XrdCl/XrdClURL.hh"
 
 using namespace XrdPfcDecisionUcsd;
 
@@ -37,14 +34,42 @@ Decision::~Decision()
 
 bool Decision::ConfigDecision(const char* params)
 {
-   m_log.Say("Params: ", params);
+   pcrecpp::StringPiece input(params);
+   
+   pcrecpp::RE cent("([-+]?)([^ ]+)\\s*");
+
+   std::string opt, re;
+
+   while (cent.Consume(&input, &opt, &re))
+   {
+      if (opt.empty()) opt = "+";
+      m_log.Say("  Decision ", opt[0] == '+' ? "Cache: " : "Do not cache: ", re.c_str());
+
+      m_rules.push_back(Rule(re, opt[0] == '+'));
+   }
 
    return true;
 }
 
 //==============================================================================
 
-bool Decision::Decide(const std::string &, XrdOss &) const
+bool Decision::Decide(const std::string &lfn, XrdOss &) const
 {
+   m_log.Say("XrdPfcDecisionUcsd::Decision::Decide ", lfn.c_str());
+
+   int nr = m_rules.size();
+   for (int i = 0; i < nr; ++i)
+   {
+      const Rule &r = m_rules[i];
+
+      m_log.Say("  trying ", r.m_re.pattern().c_str());
+
+      if (r.m_re.PartialMatch(lfn))
+      {
+         m_log.Say("  match. returning ", r.m_pass ? "pass" : "no pass");
+         return r.m_pass;
+      }
+   }
+
    return true;
 }
