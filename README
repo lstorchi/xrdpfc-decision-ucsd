@@ -1,0 +1,14 @@
+XRootD Proxy File Cache Decision plugin in use at UCSD T2.
+Use as:
+    pfc.decisionlib libXrdPfcDecisionUcsd.so params
+each param is [+-]regexp
+       + means do cachem, - means do not cache
+       if no + or - is given, + is assumed.
+Regular expressions are processed in order they are specified.
+If no regexps match, "do cache" is assumed.
+
+pfc.decisionlib libXrdPfcDecisionUcsd.so \
+               +^/+store/data/Run2016[A-Z]/[^/]+/MINIAOD/03Feb2017" \
+               +^/+store/mc/RunIISummer16MiniAODv2/[^/]+/MINIAODSIM/PUMoriond17_80X_ \
+               +^/+store/user/matevz/
+               -.
