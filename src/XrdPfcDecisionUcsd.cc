@@ -6,6 +6,10 @@
 #include <vector>
 #include <string>
 
+#include <iostream> 
+#include <string>
+#include <sstream>     
+
 #include "XrdPfcDecisionUcsd.hh"
 #include "XrdSys/XrdSysError.hh"
 #include "XrdCl/XrdClURL.hh"
@@ -24,7 +28,7 @@ XrdFileCache::Decision *XrdFileCacheGetDecision(XrdSysError &log)
 
 Decision::Decision(XrdSysError &log) : XrdFileCache::Decision(), m_log(log)
 {
-   m_log.Say("XrdPfcDecisionUcsd::Decision instantiated.");
+   m_log.Say("XrdPfcDecisionUcsd::Decision instantiated. redo");
 }
 
 Decision::~Decision()
@@ -58,6 +62,12 @@ bool Decision::Decide(const std::string &lfn, XrdOss &) const
    m_log.Say("XrdPfcDecisionUcsd::Decision::Decide ", lfn.c_str());
 
    int nr = m_rules.size();
+
+   std::ostringstream oss;
+   oss << "number of rules " << nr << " ";
+   m_log.Say("XrdPfcDecisionUcsd::Decision::Decide ", 
+      oss.str().c_str());
+
    for (int i = 0; i < nr; ++i)
    {
       const Rule &r = m_rules[i];
